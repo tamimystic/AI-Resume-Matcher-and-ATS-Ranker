@@ -1,0 +1,23 @@
+TANVIR AHMED
+Junior Frontend Developer
+Email: tanvir.dev@example.com | GitHub: github.com/tanvir-dev
+
+PROFILE SUMMARY:
+Passionate Junior Web Developer with 1.5 years of experience crafting interactive user interfaces using React, JavaScript, HTML5, CSS3, and Bootstrap. Eager to contribute to web engineering teams and learn modern backend and cloud technologies.
+
+SKILLS:
+• Frontend: JavaScript, React, HTML5, CSS3, Bootstrap, Tailwind CSS, Sass/SCSS
+• Basic Tools: Git, GitHub, VS Code, Figma, Postman
+• Core Strengths: Team Collaboration, Problem Solving, Fast Learner
+
+PROJECTS & EXPERIENCE:
+Junior Frontend Developer | SoftSolutions BD (2023 – Present)
+• Built interactive client-facing responsive components using React and Tailwind CSS.
+• Integrated REST APIs provided by the backend team.
+• Translated UI/UX designs from Figma into pixel-perfect web pages.
+
+E-Commerce Web App (Personal Project):
+• Created a shopping portal with React, Redux, and Tailwind CSS.
+
+EDUCATION:
+B.Sc. in Computer Science | North South University (2023)

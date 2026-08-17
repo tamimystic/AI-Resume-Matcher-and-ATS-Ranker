@@ -1,0 +1,25 @@
+Job Title: Senior Full-Stack AI Engineer
+Location: Remote / Hybrid
+Department: Intelligent Systems Engineering
+
+Job Overview:
+We are seeking an experienced Senior Full-Stack AI Engineer to design, architect, and deploy production-grade intelligent web applications and microservices. The ideal candidate will bridge the gap between modern full-stack web technologies and deep learning transformer architectures.
+
+Primary Responsibilities:
+- Architect and maintain scalable backend microservices and RESTful APIs using Python, FastAPI, and PostgreSQL.
+- Build high-performance, accessible frontend interfaces utilizing React, Next.js, and TypeScript.
+- Integrate, fine-tune, and optimize Machine Learning models using PyTorch, Hugging Face Transformers, and LangChain.
+- Implement Retrieval-Augmented Generation (RAG) workflows and vector database solutions.
+- Containerize services using Docker and manage cloud deployment pipelines on AWS infrastructure using GitHub Actions CI/CD.
+- Participate in Agile/Scrum sprints, mentor junior team members, and drive software quality through test automation.
+
+Required Qualifications and Skills:
+- 4+ years of professional software development experience.
+- Strong proficiency in Python, JavaScript, and TypeScript.
+- Demonstrated expertise with backend frameworks: FastAPI or Django.
+- Hands-on experience with frontend frameworks: React, Next.js, and Tailwind CSS.
+- Proven experience in Machine Learning, NLP, PyTorch, and Hugging Face Transformers.
+- Familiarity with Vector Databases and RAG architectures.
+- Cloud and DevOps competencies: AWS (EC2, S3, Lambda), Docker, and CI/CD pipelines.
+- Relational and distributed database experience: PostgreSQL, Redis, MongoDB.
+- Strong analytical capabilities, problem-solving mindset, and professional communication skills.

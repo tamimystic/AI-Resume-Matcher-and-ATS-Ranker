@@ -1,0 +1,30 @@
+RAHMAN ALAM
+Senior Full-Stack AI Engineer | Dhaka, Bangladesh
+Email: rahman.alam@example.com | GitHub: github.com/rahmanalam | LinkedIn: linkedin.com/in/rahmanalam
+
+PROFESSIONAL SUMMARY:
+Lead Full-Stack & Machine Learning Engineer with 5+ years of experience designing and scaling production-grade web systems and AI applications. Proven expertise in building high-throughput FastAPI backends, reactive Next.js/React user interfaces, and fine-tuning PyTorch transformer models. Successfully deployed RAG systems and microservices across AWS and Docker environments.
+
+TECHNICAL SKILLS:
+• Languages: Python, TypeScript, JavaScript, SQL, HTML5, CSS3
+• Frontend: React, Next.js, Tailwind CSS, Redux Toolkit
+• Backend & APIs: FastAPI, Django, RESTful APIs, Node.js, Express.js, Microservices
+• AI / ML / NLP: PyTorch, Hugging Face Transformers, LangChain, RAG, NLP, Deep Learning, Pandas, NumPy, Scikit-Learn
+• Databases: PostgreSQL, MongoDB, Redis, Pinecone, ChromaDB
+• DevOps & Cloud: AWS (EC2, S3, Lambda), Docker, Kubernetes, GitHub Actions, CI/CD, Linux
+• Methodologies & Soft Skills: Agile/Scrum, Git, Leadership, Problem Solving, Team Mentoring
+
+WORK EXPERIENCE:
+Lead AI Software Engineer | Apex AI Technologies (2022 – Present)
+• Architected and deployed an enterprise RAG-based AI search assistant using LangChain, PyTorch, FastAPI, and Pinecone vector database, reducing customer query latency by 45%.
+• Developed responsive frontend dashboards using React, Next.js, and TypeScript with seamless state management and dark mode UI.
+• Spearheaded containerization of 12 microservices with Docker and established automated CI/CD deployment pipelines on AWS.
+• Mentored a squad of 6 junior engineers and conducted sprint planning in an Agile environment.
+
+Senior Full-Stack Developer | DataCore Software (2019 – 2022)
+• Built scalable REST APIs with Python (FastAPI/Django) and PostgreSQL serving 100K+ daily active users.
+• Implemented interactive web applications using React, HTML5, and CSS3.
+• Optimized PostgreSQL and Redis query performance, improving response times by 35%.
+
+EDUCATION:
+B.Sc. in Computer Science & Engineering | University of Dhaka (2015 – 2019)
