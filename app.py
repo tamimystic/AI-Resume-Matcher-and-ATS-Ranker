@@ -123,16 +123,6 @@ st.markdown("""
         color: #334155;
         border: 1px solid #cbd5e1;
     }
-    .tag-matched {
-        background-color: #ecfdf5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-    }
-    .tag-missing {
-        background-color: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -151,11 +141,11 @@ def initialize_pipeline(requirement_weight: float, macro_weight: float, terminol
 st.markdown("""
 <div class="enterprise-header">
     <h1>Universal ATS - AI Resume Matcher and Ranker</h1>
-    <p>Domain-agnostic requirement evidence retrieval, contextual vector similarity, and multi-factor candidate scoring across all industries.</p>
+    <p>Dynamic requirement extraction, contextual vector similarity, and multi-factor candidate evaluation for any industry domain.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Configuration
+# Sidebar Configuration: Only weights and algorithmic settings (Zero hardcoded presets)
 with st.sidebar:
     st.markdown("### Evaluation Weighting")
     st.caption("Adjust weight distributions across scoring dimensions.")
@@ -168,59 +158,25 @@ with st.sidebar:
                        help="Measures dynamic domain keyphrase density.")
 
     st.markdown("---")
-    st.markdown("### Reference Datasets")
-    st.caption("Select a domain preset to load verified job criteria and candidate resumes.")
-
-    domain_preset = st.selectbox(
-        "Industry Domain Preset",
-        ["Software Engineering", "Clinical Pharmacist", "Logistics & Heavy Truck Driver"]
-    )
-    load_preset_btn = st.button("Load Selected Preset", use_container_width=True)
-
-    st.markdown("---")
-    st.markdown("### Universal Design Highlights")
+    st.markdown("### System Characteristics")
     st.markdown("""
-    - Domain-Agnostic: Zero hardcoded skill dictionaries
-    - Point-by-Point Evidence: Verifies each requirement
-    - Sentence-BERT Embedding: 384-dimensional dense vectors
-    - Privacy: 100% In-memory local processing
+    - Domain Agnostic: No hardcoded rules or predefined skill lists
+    - Dynamic Extraction: Requirements parsed directly from input
+    - Semantic Neural Vector Space: 384-dimensional dense embeddings
+    - Privacy: Local in-memory processing with zero external data transmission
     """)
 
 pipeline = initialize_pipeline(w_req, w_macro, w_term)
 
-# Session state setup
-if "jd_input_text" not in st.session_state:
-    st.session_state.jd_input_text = ""
-if "active_preset_domain" not in st.session_state:
-    st.session_state.active_preset_domain = None
-
-sample_base = os.path.join(os.path.dirname(__file__), "samples")
-
-if load_preset_btn:
-    st.session_state.active_preset_domain = domain_preset
-    
-    if domain_preset == "Software Engineering":
-        jd_file = os.path.join(sample_base, "sample_job_description.txt")
-    elif domain_preset == "Clinical Pharmacist":
-        jd_file = os.path.join(sample_base, "sample_pharmacy_job.txt")
-    else:
-        jd_file = os.path.join(sample_base, "sample_driver_job.txt")
-
-    if os.path.exists(jd_file):
-        with open(jd_file, "r", encoding="utf-8") as f:
-            st.session_state.jd_input_text = f.read()
-        st.success(f"{domain_preset} preset loaded. Proceed to candidate analysis below.")
-
-# Input Layout
+# Main 2-Column Layout for Pure User Inputs
 col_left, col_right = st.columns([1, 1], gap="medium")
 
 with col_left:
     st.markdown("#### 1. Target Job Description")
     jd_text = st.text_area(
-        "Paste Full Job Description, Responsibilities and Requirements",
-        value=st.session_state.jd_input_text,
-        height=320,
-        placeholder="Paste full responsibilities, mandatory qualifications, skills, and experience requirements..."
+        "Paste Job Description, Responsibilities, and Qualifications",
+        height=340,
+        placeholder="Paste any job posting text from any industry (e.g. Healthcare, Engineering, Finance, Education, Operations, Aviation, Legal, etc.)..."
     )
 
     if jd_text.strip():
@@ -228,14 +184,14 @@ with col_left:
         reqs = analyzed_jd["requirements"]
         kps = analyzed_jd["keyphrases"]
 
-        with st.expander(f"Extracted Criteria ({len(reqs)} Requirements, {len(kps)} Domain Keyphrases)", expanded=True):
-            st.markdown(f"**Identified Core Requirements ({len(reqs)}):**")
-            for idx, r in enumerate(reqs[:8], start=1):
+        with st.expander(f"Dynamically Extracted Criteria ({len(reqs)} Requirements, {len(kps)} Keyphrases)", expanded=True):
+            st.markdown(f"**Identified Criteria ({len(reqs)}):**")
+            for idx, r in enumerate(reqs[:10], start=1):
                 st.markdown(f"- **R{idx}:** {r}")
-            if len(reqs) > 8:
-                st.caption(f"... and {len(reqs) - 8} more requirements.")
+            if len(reqs) > 10:
+                st.caption(f"... and {len(reqs) - 10} additional criteria.")
 
-            st.markdown(f"**Extracted Domain Keyphrases ({len(kps)}):**")
+            st.markdown(f"**Detected Domain Terminology ({len(kps)}):**")
             if kps:
                 tags = " ".join([f'<span class="keyphrase-tag">{kp}</span>' for kp in kps])
                 st.markdown(tags, unsafe_allow_html=True)
@@ -243,16 +199,13 @@ with col_left:
         analyzed_jd = {"requirements": [], "keyphrases": []}
 
 with col_right:
-    st.markdown("#### 2. Candidate Ingestion")
+    st.markdown("#### 2. Candidate Resumes")
     uploaded_files = st.file_uploader(
         "Upload Resumes (PDF, DOCX, TXT)",
         type=["pdf", "docx", "txt"],
         accept_multiple_files=True,
-        help="Upload candidate documents for batch evaluation."
+        help="Upload single or multiple candidate resume documents for evaluation."
     )
-
-    if st.session_state.active_preset_domain and not uploaded_files:
-        st.info(f"Using reference candidate profiles for {st.session_state.active_preset_domain}.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     run_btn = st.button("Execute Candidate Evaluation", type="primary", use_container_width=True)
@@ -262,40 +215,27 @@ st.markdown("---")
 # Execution Handler
 if run_btn:
     if not jd_text.strip():
-        st.error("A valid Job Description is required to initiate matching.")
+        st.error("Please provide a Job Description to initiate matching.")
+    elif not uploaded_files:
+        st.error("Please upload at least one candidate resume (PDF, DOCX, or TXT).")
     else:
         batch_items: List[Tuple[any, str]] = []
+        for file_item in uploaded_files:
+            batch_items.append((file_item, file_item.name))
 
-        if uploaded_files:
-            for file_item in uploaded_files:
-                batch_items.append((file_item, file_item.name))
-        elif st.session_state.active_preset_domain:
-            preset_folder = os.path.join(sample_base, "sample_resumes")
-            if os.path.exists(preset_folder):
-                for filename in sorted(os.listdir(preset_folder)):
-                    filepath = os.path.join(preset_folder, filename)
-                    if os.path.isfile(filepath):
-                        with open(filepath, "r", encoding="utf-8") as f:
-                            content = f.read()
-                        clean_name = filename.replace(".txt", "").replace("_", " ").title()
-                        batch_items.append((content, clean_name))
-        else:
-            st.error("Upload at least one resume document or load an industry domain preset in the sidebar.")
+        progress_bar = st.progress(0, text="Evaluating candidate documents...")
 
-        if batch_items:
-            progress_bar = st.progress(0, text="Evaluating candidate documents...")
+        def update_progress(current_idx: int, total_count: int, current_filename: str):
+            progress_bar.progress(current_idx / total_count, text=f"Processing {current_idx}/{total_count}: {current_filename}")
 
-            def update_progress(current_idx: int, total_count: int, current_filename: str):
-                progress_bar.progress(current_idx / total_count, text=f"Processing {current_idx}/{total_count}: {current_filename}")
+        evaluation_artifacts = pipeline.evaluate_batch(
+            resume_items=batch_items,
+            job_description_text=jd_text,
+            progress_callback=update_progress
+        )
 
-            evaluation_artifacts = pipeline.evaluate_batch(
-                resume_items=batch_items,
-                job_description_text=jd_text,
-                progress_callback=update_progress
-            )
-
-            progress_bar.empty()
-            st.session_state.evaluation_results = evaluation_artifacts
+        progress_bar.empty()
+        st.session_state.evaluation_results = evaluation_artifacts
 
 # Results Presentation
 if "evaluation_results" in st.session_state and st.session_state.evaluation_results:
@@ -414,14 +354,14 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
                             st.markdown(f"- {str_item}")
 
                     if a.verdict.gaps:
-                        st.markdown("**Identified Gaps:**")
+                        st.markdown("**Identified Discrepancies:**")
                         for gap_item in a.verdict.gaps:
                             st.markdown(f"- {gap_item}")
 
                     # Point-by-Point Evidence Audit
                     st.markdown("##### Point-by-Point Requirement Evidence Audit")
                     for r_idx, ev in enumerate(a.requirement_analysis.requirement_evidence_list, start=1):
-                        box_class = "req-satisfied" if ev.calibrated_score >= 70.0 else ("req-partial" if ev.calibrated_score >= 40.0 else "req-unmet")
+                        box_class = "req-satisfied" if ev.calibrated_score >= 65.0 else ("req-partial" if ev.calibrated_score >= 35.0 else "req-unmet")
                         st.markdown(f"""
                         <div class="req-item-box {box_class}">
                             <div style="display: flex; justify-content: space-between;">
