@@ -138,13 +138,12 @@ st.markdown("""
 
 
 @st.cache_resource(show_spinner=False)
-def initialize_pipeline(core_w: float, pref_w: float, soft_w: float) -> ResumeMatchingPipeline:
-    weights = MatchingWeightsConfig(
-        core_requirements_weight=core_w,
-        preferred_qualifications_weight=pref_w,
-        experiential_evidence_weight=soft_w
+def load_matching_pipeline() -> ResumeMatchingPipeline:
+    """Loads and caches the heavy NLP model pipeline once in memory."""
+    return ResumeMatchingPipeline(
+        weights_config=MatchingWeightsConfig(0.60, 0.25, 0.15),
+        model_config=ModelConfig()
     )
-    return ResumeMatchingPipeline(weights_config=weights, model_config=ModelConfig())
 
 
 # Top Header
@@ -155,28 +154,52 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Configuration: Tier Weights
+pipeline = load_matching_pipeline()
+
+# Sidebar Configuration: Tier Weights and Explanations
 with st.sidebar:
     st.markdown("### Evaluation Weighting")
-    st.caption("Adjust weight distributions across requirement tiers.")
+    st.caption("How the ATS balances different types of job requirements:")
 
-    w_core = st.slider("Core / Mandatory Qualifications", min_value=0.3, max_value=0.8, value=0.60, step=0.05,
-                       help="Primary qualifications, mandatory degrees, core technical competencies, and baseline criteria.")
-    w_pref = st.slider("Preferred / Good-to-Have", min_value=0.1, max_value=0.4, value=0.25, step=0.05,
-                       help="Secondary qualifications, bonus tools, and complementary domain experience.")
-    w_soft = st.slider("Soft Skills / General Attributes", min_value=0.05, max_value=0.3, value=0.15, step=0.05,
-                       help="Behavioral attributes, communication, teamwork, and documentation.")
+    w_core = st.slider(
+        "Core / Mandatory Qualifications",
+        min_value=0.30,
+        max_value=0.80,
+        value=0.60,
+        step=0.05,
+        help="Weight given to mandatory degrees, fundamental technical skills, and essential duties."
+    )
+    w_pref = st.slider(
+        "Preferred / Good-to-Have",
+        min_value=0.10,
+        max_value=0.40,
+        value=0.25,
+        step=0.05,
+        help="Weight given to bonus technologies, secondary frameworks, and complementary experience."
+    )
+    w_soft = st.slider(
+        "Soft Skills & Behavioral Attributes",
+        min_value=0.05,
+        max_value=0.30,
+        value=0.15,
+        step=0.05,
+        help="Weight given to teamwork, communication, and general workplace habits."
+    )
+
+    # Dynamic Weight Synchronization
+    pipeline.semantic_matcher.weights_config = MatchingWeightsConfig(
+        core_requirements_weight=w_core,
+        preferred_qualifications_weight=w_pref,
+        experiential_evidence_weight=w_soft
+    )
 
     st.markdown("---")
-    st.markdown("### System Architecture")
+    st.markdown("### Why These Weights?")
     st.markdown("""
-    - Domain Independence: Zero hardcoded dictionaries
-    - Tiered Evaluation: Separates mandatory vs preferred criteria
-    - Cluster Resolution: Evaluates alternative skill choices
-    - Privacy: 100% In-memory local processing
+    - **Core (60%):** Ensures candidates who possess the required degree and essential skills are prioritized.
+    - **Preferred (25%):** Rewards bonus knowledge (e.g. React/Docker) without penalizing those who only have the core stack.
+    - **Soft Skills (15%):** Prevents technical resumes from being unfairly penalized for omitting conversational phrases.
     """)
-
-pipeline = initialize_pipeline(w_core, w_pref, w_soft)
 
 # Main Input Section
 col_left, col_right = st.columns([1, 1], gap="medium")
