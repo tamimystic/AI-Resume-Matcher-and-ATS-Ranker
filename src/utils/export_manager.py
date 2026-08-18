@@ -23,13 +23,14 @@ class ExportManager:
                     "Overall Match Score (%)": item.match_percentage,
                     "Fit Category": item.fit_tier,
                     "Recommendation Verdict": item.verdict.verdict_badge,
-                    "Requirement Coverage (%)": item.requirement_coverage_score,
-                    "Macro Context Similarity (%)": item.macro_semantic_score,
-                    "Domain Terminology (%)": item.domain_terminology_score,
-                    "Satisfied Requirements Count": analysis.satisfied_count,
-                    "Unmet Requirements Count": analysis.unmet_count,
+                    "Core Requirements Score (%)": item.core_qualifications_score,
+                    "Preferred Qualifications Score (%)": item.preferred_qualifications_score,
+                    "Soft Skills / General Score (%)": item.experiential_evidence_score,
+                    "Satisfied Criteria Count": len(analysis.satisfied_requirements),
+                    "Unmet Criteria Count": len(analysis.unmet_requirements),
                     "Satisfied Criteria": " | ".join(analysis.satisfied_requirements),
                     "Unmet Criteria": " | ".join(analysis.unmet_requirements),
+                    "Matched Domain Terms": ", ".join(analysis.matched_domain_terms),
                     "Executive Summary": item.executive_summary.replace("\n", " ")
                 })
             return pd.DataFrame(records)

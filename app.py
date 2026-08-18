@@ -10,7 +10,7 @@ from src.utils.export_manager import ExportManager
 from src.logger.logging import logger
 
 st.set_page_config(
-    page_title="Universal ATS - AI Resume Matcher and Ranker",
+    page_title="Universal ATS - AI Candidate Matcher and Ranker",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -86,6 +86,16 @@ st.markdown("""
         border-left: 4px solid #ef4444;
     }
 
+    .tier-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background-color: #e2e8f0;
+        color: #334155;
+        margin-right: 6px;
+    }
+
     .evidence-quote {
         background: #ffffff;
         border: 1px dashed #cbd5e1;
@@ -128,11 +138,11 @@ st.markdown("""
 
 
 @st.cache_resource(show_spinner=False)
-def initialize_pipeline(requirement_weight: float, macro_weight: float, terminology_weight: float) -> ResumeMatchingPipeline:
+def initialize_pipeline(core_w: float, pref_w: float, soft_w: float) -> ResumeMatchingPipeline:
     weights = MatchingWeightsConfig(
-        requirement_weight=requirement_weight,
-        macro_semantic_weight=macro_weight,
-        terminology_weight=terminology_weight
+        core_requirements_weight=core_w,
+        preferred_qualifications_weight=pref_w,
+        experiential_evidence_weight=soft_w
     )
     return ResumeMatchingPipeline(weights_config=weights, model_config=ModelConfig())
 
@@ -140,35 +150,35 @@ def initialize_pipeline(requirement_weight: float, macro_weight: float, terminol
 # Top Header
 st.markdown("""
 <div class="enterprise-header">
-    <h1>Universal ATS - AI Resume Matcher and Ranker</h1>
-    <p>Dynamic requirement extraction, contextual vector similarity, and multi-factor candidate evaluation for any industry domain.</p>
+    <h1>Universal ATS - AI Candidate Matcher and Ranker</h1>
+    <p>Tiered requirement categorization, disjunctive cluster resolution, and calibrated evidence scoring across any industry domain.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Configuration: Only weights and algorithmic settings (Zero hardcoded presets)
+# Sidebar Configuration: Tier Weights
 with st.sidebar:
     st.markdown("### Evaluation Weighting")
-    st.caption("Adjust weight distributions across scoring dimensions.")
+    st.caption("Adjust weight distributions across requirement tiers.")
 
-    w_req = st.slider("Requirement Evidence Coverage", min_value=0.2, max_value=0.8, value=0.55, step=0.05,
-                      help="Evaluates point-by-point evidence across individual job criteria.")
-    w_macro = st.slider("Macro Context Similarity", min_value=0.1, max_value=0.5, value=0.25, step=0.05,
-                        help="Measures full document semantic contextual alignment.")
-    w_term = st.slider("Domain Terminology Overlap", min_value=0.0, max_value=0.4, value=0.20, step=0.05,
-                       help="Measures dynamic domain keyphrase density.")
+    w_core = st.slider("Core / Mandatory Qualifications", min_value=0.3, max_value=0.8, value=0.60, step=0.05,
+                       help="Primary qualifications, mandatory degrees, core technical competencies, and baseline criteria.")
+    w_pref = st.slider("Preferred / Good-to-Have", min_value=0.1, max_value=0.4, value=0.25, step=0.05,
+                       help="Secondary qualifications, bonus tools, and complementary domain experience.")
+    w_soft = st.slider("Soft Skills / General Attributes", min_value=0.05, max_value=0.3, value=0.15, step=0.05,
+                       help="Behavioral attributes, communication, teamwork, and documentation.")
 
     st.markdown("---")
-    st.markdown("### System Characteristics")
+    st.markdown("### System Architecture")
     st.markdown("""
-    - Domain Agnostic: No hardcoded rules or predefined skill lists
-    - Dynamic Extraction: Requirements parsed directly from input
-    - Semantic Neural Vector Space: 384-dimensional dense embeddings
-    - Privacy: Local in-memory processing with zero external data transmission
+    - Domain Independence: Zero hardcoded dictionaries
+    - Tiered Evaluation: Separates mandatory vs preferred criteria
+    - Cluster Resolution: Evaluates alternative skill choices
+    - Privacy: 100% In-memory local processing
     """)
 
-pipeline = initialize_pipeline(w_req, w_macro, w_term)
+pipeline = initialize_pipeline(w_core, w_pref, w_soft)
 
-# Main 2-Column Layout for Pure User Inputs
+# Main Input Section
 col_left, col_right = st.columns([1, 1], gap="medium")
 
 with col_left:
@@ -181,22 +191,26 @@ with col_left:
 
     if jd_text.strip():
         analyzed_jd = pipeline.analyze_job_description(jd_text)
-        reqs = analyzed_jd["requirements"]
+        cat_reqs = analyzed_jd["categorized_requirements"]
         kps = analyzed_jd["keyphrases"]
 
-        with st.expander(f"Dynamically Extracted Criteria ({len(reqs)} Requirements, {len(kps)} Keyphrases)", expanded=True):
-            st.markdown(f"**Identified Criteria ({len(reqs)}):**")
-            for idx, r in enumerate(reqs[:10], start=1):
-                st.markdown(f"- **R{idx}:** {r}")
-            if len(reqs) > 10:
-                st.caption(f"... and {len(reqs) - 10} additional criteria.")
+        core_count = len([r for r in cat_reqs if r[1] == "Core / Mandatory"])
+        pref_count = len([r for r in cat_reqs if r[1] == "Preferred / Good-to-Have"])
+        soft_count = len([r for r in cat_reqs if r[1] == "Soft Skills / General"])
+
+        with st.expander(f"Extracted Criteria ({len(cat_reqs)} Total: {core_count} Core, {pref_count} Preferred, {soft_count} Soft)", expanded=True):
+            st.markdown(f"**Identified Criteria ({len(cat_reqs)}):**")
+            for idx, (r_text, r_cat) in enumerate(cat_reqs[:10], start=1):
+                st.markdown(f"- **R{idx}** <span class='tier-badge'>{r_cat}</span> {r_text}", unsafe_allow_html=True)
+            if len(cat_reqs) > 10:
+                st.caption(f"... and {len(cat_reqs) - 10} additional criteria.")
 
             st.markdown(f"**Detected Domain Terminology ({len(kps)}):**")
             if kps:
                 tags = " ".join([f'<span class="keyphrase-tag">{kp}</span>' for kp in kps])
                 st.markdown(tags, unsafe_allow_html=True)
     else:
-        analyzed_jd = {"requirements": [], "keyphrases": []}
+        analyzed_jd = {"categorized_requirements": [], "keyphrases": []}
 
 with col_right:
     st.markdown("#### 2. Candidate Resumes")
@@ -310,9 +324,9 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
                 "Overall ATS Score": f"{a.match_percentage}%",
                 "Fit Tier": a.fit_tier,
                 "Verdict": a.verdict.verdict_badge,
-                "Satisfied Requirements": f"{a.requirement_analysis.satisfied_count} / {a.requirement_analysis.total_requirements}",
-                "Coverage Score": f"{a.requirement_coverage_score}%",
-                "Context Similarity": f"{a.macro_semantic_score}%"
+                "Core Qualifications": f"{a.core_qualifications_score}%",
+                "Preferred Qualifications": f"{a.preferred_qualifications_score}%",
+                "Satisfied Criteria": f"{len(a.requirement_analysis.satisfied_requirements)} / {a.requirement_analysis.total_requirements}"
             })
 
         if table_rows:
@@ -341,9 +355,9 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
 
                 with st.expander(f"Audit Trail & Evidence Breakdown: #{idx}. {a.filename}", expanded=(idx == 1)):
                     m1, m2, m3 = st.columns(3)
-                    m1.metric("Requirement Coverage", f"{a.requirement_coverage_score}%", f"{a.requirement_analysis.satisfied_count}/{a.requirement_analysis.total_requirements} Criteria")
-                    m2.metric("Macro Context Similarity", f"{a.macro_semantic_score}%")
-                    m3.metric("Domain Terminology", f"{a.domain_terminology_score}%", f"{len(a.requirement_analysis.matched_keyphrases)} Term(s)")
+                    m1.metric("Core Qualifications Score", f"{a.core_qualifications_score}%", f"{a.requirement_analysis.core_requirements_count} Core Items")
+                    m2.metric("Preferred Qualifications Score", f"{a.preferred_qualifications_score}%", f"{a.requirement_analysis.preferred_requirements_count} Preferred Items")
+                    m3.metric("Soft Skills / General Score", f"{a.experiential_evidence_score}%", f"{a.requirement_analysis.soft_skills_count} General Items")
 
                     st.markdown("##### Assessment Verdict")
                     st.markdown(f"**Recommendation:** {a.verdict.verdict_description}")
@@ -354,7 +368,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
                             st.markdown(f"- {str_item}")
 
                     if a.verdict.gaps:
-                        st.markdown("**Identified Discrepancies:**")
+                        st.markdown("**Identified Gaps:**")
                         for gap_item in a.verdict.gaps:
                             st.markdown(f"- {gap_item}")
 
@@ -365,7 +379,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
                         st.markdown(f"""
                         <div class="req-item-box {box_class}">
                             <div style="display: flex; justify-content: space-between;">
-                                <b>Criteria {r_idx}: {ev.requirement_text}</b>
+                                <span><span class="tier-badge">{ev.category}</span> <b>Criteria {r_idx}: {ev.requirement_text}</b></span>
                                 <span style="font-weight: 600;">{ev.status_label} ({ev.calibrated_score}%)</span>
                             </div>
                             <div class="evidence-quote">

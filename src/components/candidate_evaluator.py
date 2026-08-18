@@ -13,7 +13,8 @@ from src.logger.logging import logger
 
 class CandidateEvaluator:
     """
-    Universal component for candidate assessment, executive summarization, and recruitment recommendations.
+    Universal component for tiered candidate assessment, executive summarization,
+    and recruitment recommendations across any professional domain.
     """
 
     def __init__(self, summary_sentences_count: int = 4):
@@ -64,30 +65,38 @@ class CandidateEvaluator:
             strengths = []
             gaps = []
 
-            sat_count = req_analysis.satisfied_count
+            sat_count = len(req_analysis.satisfied_requirements)
             total_req = req_analysis.total_requirements
-            unmet_count = req_analysis.unmet_count
+            unmet_count = len(req_analysis.unmet_requirements)
 
-            if sat_count > 0:
-                strengths.append(f"Provides strong semantic evidence satisfying {sat_count} of {total_req} core job criteria.")
-                if req_analysis.matched_keyphrases:
-                    preview = ", ".join(req_analysis.matched_keyphrases[:5])
-                    strengths.append(f"Demonstrates competence in target domain terminology: {preview}.")
+            if req_analysis.core_score >= 70.0:
+                strengths.append(f"Demonstrates strong evidence satisfying core qualifications ({req_analysis.core_score}% core match).")
+            elif req_analysis.core_score >= 45.0:
+                strengths.append(f"Satisfies fundamental qualifications with minor areas for review ({req_analysis.core_score}% core match).")
             else:
-                gaps.append("Minimal verifiable evidence found corresponding to stated role criteria.")
+                gaps.append(f"Core mandatory qualifications partially unaddressed ({req_analysis.core_score}% core match).")
+
+            if req_analysis.matched_domain_terms:
+                preview = ", ".join(req_analysis.matched_domain_terms[:6])
+                strengths.append(f"Demonstrates validated domain terminology: {preview}.")
+
+            if req_analysis.preferred_score >= 60.0:
+                strengths.append(f"Provides positive coverage on preferred / secondary qualifications ({req_analysis.preferred_score}%).")
+            elif req_analysis.preferred_requirements_count > 0:
+                gaps.append(f"Secondary / preferred qualifications have minor gaps ({req_analysis.preferred_score}%).")
 
             if unmet_count > 0:
-                gaps.append(f"Unaddressed or partially evidenced criteria in {unmet_count} requirement area(s).")
+                gaps.append(f"Unaddressed or missing evidence in {unmet_count} requirement area(s).")
             else:
-                strengths.append("Fully addresses all explicitly stated qualification and responsibility criteria.")
+                strengths.append("Fully satisfies all explicitly stated mandatory and preferred criteria.")
 
             if match_percentage >= 75.0:
                 badge = "Strong Fit"
-                desc = "Strong overall alignment with role requirements. Recommended for primary interview."
+                desc = "Strong candidate alignment across core mandatory qualifications. Highly recommended for technical / primary interview."
                 style = "background-color: #d1fae5; color: #065f46; border: 1px solid #10b981;"
             elif match_percentage >= 50.0:
                 badge = "Moderate Fit"
-                desc = "Satisfies core competencies with minor gaps. Recommended for secondary review."
+                desc = "Satisfies core competencies with minor secondary gaps. Recommended for screening review."
                 style = "background-color: #fef3c7; color: #92400e; border: 1px solid #f59e0b;"
             elif match_percentage >= 35.0:
                 badge = "Partial Fit"
@@ -114,8 +123,6 @@ class CandidateEvaluator:
         filename: str,
         raw_text: str,
         match_percentage: float,
-        macro_semantic_score: float,
-        terminology_score: float,
         req_analysis: DynamicRequirementAnalysis
     ) -> CandidateEvaluationArtifact:
         """
@@ -141,9 +148,9 @@ class CandidateEvaluator:
                 match_percentage=match_percentage,
                 fit_tier=tier,
                 fit_color=color,
-                requirement_coverage_score=req_analysis.coverage_score,
-                macro_semantic_score=macro_semantic_score,
-                domain_terminology_score=terminology_score,
+                core_qualifications_score=req_analysis.core_score,
+                preferred_qualifications_score=req_analysis.preferred_score,
+                experiential_evidence_score=req_analysis.soft_skills_score,
                 requirement_analysis=req_analysis,
                 verdict=verdict,
                 executive_summary=summary

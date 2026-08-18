@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 
 @dataclass
@@ -8,12 +8,13 @@ class ParsedDocument:
     raw_text: str
     word_count: int
     char_count: int
-    chunks: List[str] = field(default_factory=list)
+    passages: List[str] = field(default_factory=list)
 
 
 @dataclass
 class RequirementEvidence:
     requirement_text: str
+    category: str  # "Core / Mandatory", "Preferred / Good-to-Have", "Soft Skills / General"
     matched_evidence_snippet: str
     raw_similarity: float
     calibrated_score: float
@@ -24,16 +25,18 @@ class RequirementEvidence:
 @dataclass
 class DynamicRequirementAnalysis:
     total_requirements: int
-    satisfied_count: int
-    partial_count: int
-    unmet_count: int
+    core_requirements_count: int
+    preferred_requirements_count: int
+    soft_skills_count: int
+    core_score: float
+    preferred_score: float
+    soft_skills_score: float
+    overall_coverage_score: float
     requirement_evidence_list: List[RequirementEvidence]
     satisfied_requirements: List[str]
     unmet_requirements: List[str]
-    coverage_score: float
-    extracted_keyphrases: List[str]
-    matched_keyphrases: List[str]
-    missing_keyphrases: List[str]
+    matched_domain_terms: List[str]
+    missing_domain_terms: List[str]
 
 
 @dataclass
@@ -52,9 +55,9 @@ class CandidateEvaluationArtifact:
     match_percentage: float
     fit_tier: str
     fit_color: str
-    requirement_coverage_score: float
-    macro_semantic_score: float
-    domain_terminology_score: float
+    core_qualifications_score: float
+    preferred_qualifications_score: float
+    experiential_evidence_score: float
     requirement_analysis: DynamicRequirementAnalysis
     verdict: AIVerdict
     executive_summary: str

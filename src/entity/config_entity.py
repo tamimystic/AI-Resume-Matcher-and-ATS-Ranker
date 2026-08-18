@@ -3,9 +3,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MatchingWeightsConfig:
-    requirement_weight: float = 0.55
-    macro_semantic_weight: float = 0.25
-    terminology_weight: float = 0.20
+    core_requirements_weight: float = 0.60
+    preferred_qualifications_weight: float = 0.25
+    experiential_evidence_weight: float = 0.15
 
 
 @dataclass(frozen=True)
