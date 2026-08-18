@@ -10,7 +10,7 @@ from src.utils.export_manager import ExportManager
 from src.logger.logging import logger
 
 st.set_page_config(
-    page_title="Enterprise ATS - Resume Matcher and Ranker",
+    page_title="Universal ATS - AI Resume Matcher and Ranker",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -68,28 +68,32 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
 
-    .skill-tag {
-        display: inline-block;
-        padding: 3px 9px;
+    .req-item-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.88rem;
+    }
+    .req-satisfied {
+        border-left: 4px solid #10b981;
+    }
+    .req-partial {
+        border-left: 4px solid #f59e0b;
+    }
+    .req-unmet {
+        border-left: 4px solid #ef4444;
+    }
+
+    .evidence-quote {
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        padding: 0.4rem 0.8rem;
         border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin: 2px 3px 2px 0;
-    }
-    .tag-matched {
-        background-color: #ecfdf5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-    }
-    .tag-missing {
-        background-color: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-    .tag-neutral {
-        background-color: #f1f5f9;
-        color: #334155;
-        border: 1px solid #cbd5e1;
+        font-size: 0.82rem;
+        color: #475569;
+        margin-top: 0.4rem;
     }
 
     .candidate-card-container {
@@ -108,26 +112,37 @@ st.markdown("""
         display: inline-block;
     }
 
-    .summary-text-box {
-        background: #f8fafc;
-        border-radius: 6px;
-        padding: 0.9rem 1rem;
-        border: 1px solid #e2e8f0;
-        font-size: 0.88rem;
-        line-height: 1.6;
+    .keyphrase-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 2px 3px 2px 0;
+        background-color: #f1f5f9;
         color: #334155;
-        margin-top: 0.6rem;
+        border: 1px solid #cbd5e1;
+    }
+    .tag-matched {
+        background-color: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+    .tag-missing {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 @st.cache_resource(show_spinner=False)
-def initialize_pipeline(semantic_weight: float, skills_weight: float, keywords_weight: float) -> ResumeMatchingPipeline:
+def initialize_pipeline(requirement_weight: float, macro_weight: float, terminology_weight: float) -> ResumeMatchingPipeline:
     weights = MatchingWeightsConfig(
-        semantic_weight=semantic_weight,
-        skills_weight=skills_weight,
-        keywords_weight=keywords_weight
+        requirement_weight=requirement_weight,
+        macro_semantic_weight=macro_weight,
+        terminology_weight=terminology_weight
     )
     return ResumeMatchingPipeline(weights_config=weights, model_config=ModelConfig())
 
@@ -135,77 +150,97 @@ def initialize_pipeline(semantic_weight: float, skills_weight: float, keywords_w
 # Top Header
 st.markdown("""
 <div class="enterprise-header">
-    <h1>Enterprise ATS - Resume Matcher and Ranker</h1>
-    <p>Contextual semantic evaluation, taxonomy-driven skill gap assessment, and quantitative candidate ranking against target job specifications.</p>
+    <h1>Universal ATS - AI Resume Matcher and Ranker</h1>
+    <p>Domain-agnostic requirement evidence retrieval, contextual vector similarity, and multi-factor candidate scoring across all industries.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # Sidebar Configuration
 with st.sidebar:
-    st.markdown("### Evaluation Parameters")
+    st.markdown("### Evaluation Weighting")
     st.caption("Adjust weight distributions across scoring dimensions.")
 
-    weight_sem = st.slider("Semantic Context Weight", min_value=0.1, max_value=1.0, value=0.45, step=0.05)
-    weight_sk = st.slider("Skill Coverage Weight", min_value=0.1, max_value=1.0, value=0.40, step=0.05)
-    weight_kw = st.slider("Keyword Overlap Weight", min_value=0.0, max_value=0.5, value=0.15, step=0.05)
+    w_req = st.slider("Requirement Evidence Coverage", min_value=0.2, max_value=0.8, value=0.55, step=0.05,
+                      help="Evaluates point-by-point evidence across individual job criteria.")
+    w_macro = st.slider("Macro Context Similarity", min_value=0.1, max_value=0.5, value=0.25, step=0.05,
+                        help="Measures full document semantic contextual alignment.")
+    w_term = st.slider("Domain Terminology Overlap", min_value=0.0, max_value=0.4, value=0.20, step=0.05,
+                       help="Measures dynamic domain keyphrase density.")
 
     st.markdown("---")
-    st.markdown("### Demonstration Dataset")
-    st.caption("Load verified reference job specifications and multi-tier candidate resumes.")
+    st.markdown("### Reference Datasets")
+    st.caption("Select a domain preset to load verified job criteria and candidate resumes.")
 
-    load_sample_action = st.button("Load Reference Dataset", use_container_width=True)
+    domain_preset = st.selectbox(
+        "Industry Domain Preset",
+        ["Software Engineering", "Clinical Pharmacist", "Logistics & Heavy Truck Driver"]
+    )
+    load_preset_btn = st.button("Load Selected Preset", use_container_width=True)
 
     st.markdown("---")
-    st.markdown("### Architecture Overview")
+    st.markdown("### Universal Design Highlights")
     st.markdown("""
-    - Transformer Backbone: all-MiniLM-L6-v2
-    - Ontology: 1,000+ Normalized Technical Skills
-    - Scoring: Multi-Factor Hybrid Algorithm
-    - Privacy: Local In-Memory Evaluation
+    - Domain-Agnostic: Zero hardcoded skill dictionaries
+    - Point-by-Point Evidence: Verifies each requirement
+    - Sentence-BERT Embedding: 384-dimensional dense vectors
+    - Privacy: 100% In-memory local processing
     """)
 
-pipeline = initialize_pipeline(weight_sem, weight_sk, weight_kw)
+pipeline = initialize_pipeline(w_req, w_macro, w_term)
 
 # Session state setup
-if "job_description_input" not in st.session_state:
-    st.session_state.job_description_input = ""
-if "is_demo_active" not in st.session_state:
-    st.session_state.is_demo_active = False
+if "jd_input_text" not in st.session_state:
+    st.session_state.jd_input_text = ""
+if "active_preset_domain" not in st.session_state:
+    st.session_state.active_preset_domain = None
 
-sample_base_path = os.path.join(os.path.dirname(__file__), "samples")
-sample_jd_path = os.path.join(sample_base_path, "sample_job_description.txt")
-sample_resumes_folder = os.path.join(sample_base_path, "sample_resumes")
+sample_base = os.path.join(os.path.dirname(__file__), "samples")
 
-if load_sample_action:
-    if os.path.exists(sample_jd_path):
-        with open(sample_jd_path, "r", encoding="utf-8") as f:
-            st.session_state.job_description_input = f.read()
-        st.session_state.is_demo_active = True
-        st.success("Reference dataset loaded. Proceed to candidate analysis below.")
+if load_preset_btn:
+    st.session_state.active_preset_domain = domain_preset
+    
+    if domain_preset == "Software Engineering":
+        jd_file = os.path.join(sample_base, "sample_job_description.txt")
+    elif domain_preset == "Clinical Pharmacist":
+        jd_file = os.path.join(sample_base, "sample_pharmacy_job.txt")
+    else:
+        jd_file = os.path.join(sample_base, "sample_driver_job.txt")
+
+    if os.path.exists(jd_file):
+        with open(jd_file, "r", encoding="utf-8") as f:
+            st.session_state.jd_input_text = f.read()
+        st.success(f"{domain_preset} preset loaded. Proceed to candidate analysis below.")
 
 # Input Layout
 col_left, col_right = st.columns([1, 1], gap="medium")
 
 with col_left:
-    st.markdown("#### 1. Job Specification")
-    job_title_input = st.text_input("Role Title (Optional)", value="Senior Full-Stack AI Engineer" if st.session_state.is_demo_active else "", placeholder="e.g. Senior Backend Engineer")
+    st.markdown("#### 1. Target Job Description")
     jd_text = st.text_area(
-        "Job Description and Requirements",
-        value=st.session_state.job_description_input,
-        height=300,
-        placeholder="Paste full responsibilities, mandatory skills, and qualification criteria..."
+        "Paste Full Job Description, Responsibilities and Requirements",
+        value=st.session_state.jd_input_text,
+        height=320,
+        placeholder="Paste full responsibilities, mandatory qualifications, skills, and experience requirements..."
     )
 
     if jd_text.strip():
-        extracted_job_skills = pipeline.extract_job_skills(jd_text)
-        with st.expander(f"Extracted Requirements ({len(extracted_job_skills)} Skills)", expanded=True):
-            if extracted_job_skills:
-                tags = " ".join([f'<span class="skill-tag tag-neutral">{s}</span>' for s in extracted_job_skills])
+        analyzed_jd = pipeline.analyze_job_description(jd_text)
+        reqs = analyzed_jd["requirements"]
+        kps = analyzed_jd["keyphrases"]
+
+        with st.expander(f"Extracted Criteria ({len(reqs)} Requirements, {len(kps)} Domain Keyphrases)", expanded=True):
+            st.markdown(f"**Identified Core Requirements ({len(reqs)}):**")
+            for idx, r in enumerate(reqs[:8], start=1):
+                st.markdown(f"- **R{idx}:** {r}")
+            if len(reqs) > 8:
+                st.caption(f"... and {len(reqs) - 8} more requirements.")
+
+            st.markdown(f"**Extracted Domain Keyphrases ({len(kps)}):**")
+            if kps:
+                tags = " ".join([f'<span class="keyphrase-tag">{kp}</span>' for kp in kps])
                 st.markdown(tags, unsafe_allow_html=True)
-            else:
-                st.info("No taxonomy-listed skills found. Semantic context evaluation will proceed.")
     else:
-        extracted_job_skills = []
+        analyzed_jd = {"requirements": [], "keyphrases": []}
 
 with col_right:
     st.markdown("#### 2. Candidate Ingestion")
@@ -216,16 +251,16 @@ with col_right:
         help="Upload candidate documents for batch evaluation."
     )
 
-    if st.session_state.is_demo_active and not uploaded_files:
-        st.info("Using 4 preloaded candidate profiles (Lead AI Engineer, Data Engineer, Frontend Developer, Financial Analyst).")
+    if st.session_state.active_preset_domain and not uploaded_files:
+        st.info(f"Using reference candidate profiles for {st.session_state.active_preset_domain}.")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    execute_evaluation = st.button("Execute Candidate Evaluation", type="primary", use_container_width=True)
+    run_btn = st.button("Execute Candidate Evaluation", type="primary", use_container_width=True)
 
 st.markdown("---")
 
 # Execution Handler
-if execute_evaluation:
+if run_btn:
     if not jd_text.strip():
         st.error("A valid Job Description is required to initiate matching.")
     else:
@@ -234,16 +269,18 @@ if execute_evaluation:
         if uploaded_files:
             for file_item in uploaded_files:
                 batch_items.append((file_item, file_item.name))
-        elif st.session_state.is_demo_active and os.path.exists(sample_resumes_folder):
-            for filename in sorted(os.listdir(sample_resumes_folder)):
-                filepath = os.path.join(sample_resumes_folder, filename)
-                if os.path.isfile(filepath):
-                    with open(filepath, "r", encoding="utf-8") as f:
-                        content = f.read()
-                    formatted_name = filename.replace(".txt", "").replace("_", " ").title()
-                    batch_items.append((content, formatted_name))
+        elif st.session_state.active_preset_domain:
+            preset_folder = os.path.join(sample_base, "sample_resumes")
+            if os.path.exists(preset_folder):
+                for filename in sorted(os.listdir(preset_folder)):
+                    filepath = os.path.join(preset_folder, filename)
+                    if os.path.isfile(filepath):
+                        with open(filepath, "r", encoding="utf-8") as f:
+                            content = f.read()
+                        clean_name = filename.replace(".txt", "").replace("_", " ").title()
+                        batch_items.append((content, clean_name))
         else:
-            st.error("Upload at least one resume document or load the demonstration dataset.")
+            st.error("Upload at least one resume document or load an industry domain preset in the sidebar.")
 
         if batch_items:
             progress_bar = st.progress(0, text="Evaluating candidate documents...")
@@ -259,7 +296,6 @@ if execute_evaluation:
 
             progress_bar.empty()
             st.session_state.evaluation_results = evaluation_artifacts
-            st.session_state.active_job_skills = extracted_job_skills
 
 # Results Presentation
 if "evaluation_results" in st.session_state and st.session_state.evaluation_results:
@@ -282,7 +318,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
         st.markdown(f"""
         <div class="kpi-card" style="border-top: 3px solid #10b981;">
             <div class="kpi-value" style="color: #10b981;">{top_matches}</div>
-            <div class="kpi-label">Top Tier Matches</div>
+            <div class="kpi-label">Strong Alignment</div>
         </div>
         """, unsafe_allow_html=True)
     with kpi3:
@@ -296,7 +332,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-value">{avg_score}%</div>
-            <div class="kpi-label">Average Match Score</div>
+            <div class="kpi-label">Average ATS Score</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -304,7 +340,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
 
     tab_table, tab_details, tab_export = st.tabs([
         "Ranked Leaderboard",
-        "Candidate Profiles",
+        "Candidate Evidence Inspection",
         "Export Report"
     ])
 
@@ -331,11 +367,12 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
             table_rows.append({
                 "Rank": rank,
                 "Candidate Identifier": a.filename,
-                "Overall Score": f"{a.match_percentage}%",
+                "Overall ATS Score": f"{a.match_percentage}%",
                 "Fit Tier": a.fit_tier,
-                "Decision Verdict": a.verdict.verdict_badge,
-                "Matched Skills": a.skill_gap.matched_skills_count,
-                "Missing Skills": len(a.skill_gap.missing_skills)
+                "Verdict": a.verdict.verdict_badge,
+                "Satisfied Requirements": f"{a.requirement_analysis.satisfied_count} / {a.requirement_analysis.total_requirements}",
+                "Coverage Score": f"{a.requirement_coverage_score}%",
+                "Context Similarity": f"{a.macro_semantic_score}%"
             })
 
         if table_rows:
@@ -356,59 +393,58 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
                             </span>
                         </div>
                         <div class="score-container" style="background-color: {a.fit_color}15; color: {a.fit_color}; border: 1px solid {a.fit_color};">
-                            {a.match_percentage}% Score
+                            {a.match_percentage}% Match Score
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                with st.expander(f"Inspection Details: #{idx}. {a.filename}", expanded=(idx == 1)):
+                with st.expander(f"Audit Trail & Evidence Breakdown: #{idx}. {a.filename}", expanded=(idx == 1)):
                     m1, m2, m3 = st.columns(3)
-                    m1.metric("Semantic Similarity", f"{a.semantic_score}%")
-                    m2.metric("Skill Coverage", f"{a.skill_score}%")
-                    m3.metric("Keyword Overlap", f"{a.keyword_score}%")
+                    m1.metric("Requirement Coverage", f"{a.requirement_coverage_score}%", f"{a.requirement_analysis.satisfied_count}/{a.requirement_analysis.total_requirements} Criteria")
+                    m2.metric("Macro Context Similarity", f"{a.macro_semantic_score}%")
+                    m3.metric("Domain Terminology", f"{a.domain_terminology_score}%", f"{len(a.requirement_analysis.matched_keyphrases)} Term(s)")
 
                     st.markdown("##### Assessment Verdict")
                     st.markdown(f"**Recommendation:** {a.verdict.verdict_description}")
 
                     if a.verdict.strengths:
-                        st.markdown("**Demonstrated Strengths:**")
+                        st.markdown("**Validated Strengths:**")
                         for str_item in a.verdict.strengths:
                             st.markdown(f"- {str_item}")
 
                     if a.verdict.gaps:
-                        st.markdown("**Identified Discrepancies:**")
+                        st.markdown("**Identified Gaps:**")
                         for gap_item in a.verdict.gaps:
                             st.markdown(f"- {gap_item}")
 
-                    st.markdown("##### Skill Alignment Breakdown")
-                    col_m, col_g = st.columns(2)
-                    with col_m:
-                        st.markdown(f"**Matched Competencies ({a.skill_gap.matched_skills_count})**")
-                        if a.skill_gap.matched_skills:
-                            matched_tags = " ".join([f'<span class="skill-tag tag-matched">{s}</span>' for s in a.skill_gap.matched_skills])
-                            st.markdown(matched_tags, unsafe_allow_html=True)
-                        else:
-                            st.caption("No direct skill matches detected.")
+                    # Point-by-Point Evidence Audit
+                    st.markdown("##### Point-by-Point Requirement Evidence Audit")
+                    for r_idx, ev in enumerate(a.requirement_analysis.requirement_evidence_list, start=1):
+                        box_class = "req-satisfied" if ev.calibrated_score >= 70.0 else ("req-partial" if ev.calibrated_score >= 40.0 else "req-unmet")
+                        st.markdown(f"""
+                        <div class="req-item-box {box_class}">
+                            <div style="display: flex; justify-content: space-between;">
+                                <b>Criteria {r_idx}: {ev.requirement_text}</b>
+                                <span style="font-weight: 600;">{ev.status_label} ({ev.calibrated_score}%)</span>
+                            </div>
+                            <div class="evidence-quote">
+                                <i>Candidate Evidence:</i> "{ev.matched_evidence_snippet}"
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                    with col_g:
-                        st.markdown(f"**Missing Competencies ({len(a.skill_gap.missing_skills)})**")
-                        if a.skill_gap.missing_skills:
-                            missing_tags = " ".join([f'<span class="skill-tag tag-missing">{s}</span>' for s in a.skill_gap.missing_skills])
-                            st.markdown(missing_tags, unsafe_allow_html=True)
-                        else:
-                            st.caption("All required skills satisfied.")
-
+                    # Executive Summary
                     st.markdown("##### Executive Profile Summary")
                     st.markdown(f"""
-                    <div class="summary-text-box">
+                    <div style="background: #f8fafc; border-radius: 6px; padding: 0.9rem 1rem; border: 1px solid #e2e8f0; font-size: 0.88rem; line-height: 1.6; color: #334155;">
                         {a.executive_summary}
                     </div>
                     """, unsafe_allow_html=True)
 
     with tab_export:
         st.markdown("#### Evaluation Report Export")
-        st.caption("Download structured candidate metrics and skills assessment in CSV format.")
+        st.caption("Download structured candidate metrics and requirement audit trail in CSV format.")
 
         df_export = ExportManager.to_dataframe(artifacts)
         st.dataframe(df_export, use_container_width=True)
@@ -417,7 +453,7 @@ if "evaluation_results" in st.session_state and st.session_state.evaluation_resu
         st.download_button(
             label="Download Evaluation Dataset (CSV)",
             data=csv_data,
-            file_name="candidate_ats_evaluation_report.csv",
+            file_name="universal_ats_candidate_evaluation.csv",
             mime="text/csv",
             type="primary",
             use_container_width=True

@@ -4,7 +4,7 @@ from typing import List
 from sklearn.feature_extraction.text import TfidfVectorizer
 from src.entity.artifact_entity import (
     CandidateEvaluationArtifact,
-    SkillGapAnalysis,
+    DynamicRequirementAnalysis,
     AIVerdict
 )
 from src.exception.custom_exception import CustomException
@@ -13,7 +13,7 @@ from src.logger.logging import logger
 
 class CandidateEvaluator:
     """
-    Component for generating executive summaries, strength/gap assessments, and recruitment verdicts.
+    Universal component for candidate assessment, executive summarization, and recruitment recommendations.
     """
 
     def __init__(self, summary_sentences_count: int = 4):
@@ -21,7 +21,7 @@ class CandidateEvaluator:
 
     def summarize_profile(self, text: str) -> str:
         """
-        Extracts the most salient sentences from resume text to form a concise profile summary.
+        Extracts the most salient factual sentences from a candidate's resume across any industry.
         """
         try:
             if not text.strip():
@@ -30,7 +30,7 @@ class CandidateEvaluator:
             raw_sentences = re.split(r'(?<=[.!?])\s+|\n+', text)
             sentences = [
                 s.strip() for s in raw_sentences 
-                if len(s.strip().split()) >= 6 and len(s.strip()) <= 250
+                if len(s.strip().split()) >= 5 and len(s.strip()) <= 250
             ]
 
             if not sentences:
@@ -44,58 +44,58 @@ class CandidateEvaluator:
             sentence_scores = tfidf_matrix.sum(axis=1).A1
 
             top_indices = sorted(sentence_scores.argsort()[-self.summary_sentences_count:])
-            selected_sentences = [sentences[i] for i in top_indices]
-            return "\n".join([f"- {s}" for s in selected_sentences])
+            selected = [sentences[i] for i in top_indices]
+            return "\n".join([f"- {s}" for s in selected])
         except Exception as e:
-            logger.warning(f"Summarization fallback triggered: {str(e)}")
+            logger.warning(f"Summarization fallback: {str(e)}")
             fallback = [s for s in sentences[:self.summary_sentences_count]] if 'sentences' in locals() else [text[:200]]
             return "\n".join([f"- {s}" for s in fallback])
 
     def evaluate_verdict(
         self,
         match_percentage: float,
-        skill_gap: SkillGapAnalysis,
+        req_analysis: DynamicRequirementAnalysis,
         candidate_name: str
     ) -> AIVerdict:
         """
-        Produces actionable hiring recommendations based on quantitative matching metrics.
+        Produces actionable hiring recommendations based on quantitative requirement satisfaction.
         """
         try:
             strengths = []
             gaps = []
 
-            matched = skill_gap.matched_skills
-            missing = skill_gap.missing_skills
+            sat_count = req_analysis.satisfied_count
+            total_req = req_analysis.total_requirements
+            unmet_count = req_analysis.unmet_count
 
-            if matched:
-                top_matched = ", ".join(matched[:5])
-                strengths.append(f"Demonstrates validated competence in {len(matched)} target skill(s): {top_matched}.")
-                if len(matched) > 5:
-                    strengths.append(f"Additional relevant capabilities in {', '.join(matched[5:9])}.")
+            if sat_count > 0:
+                strengths.append(f"Provides strong semantic evidence satisfying {sat_count} of {total_req} core job criteria.")
+                if req_analysis.matched_keyphrases:
+                    preview = ", ".join(req_analysis.matched_keyphrases[:5])
+                    strengths.append(f"Demonstrates competence in target domain terminology: {preview}.")
             else:
-                gaps.append("Did not demonstrate any of the primary technical skills listed in the job specification.")
+                gaps.append("Minimal verifiable evidence found corresponding to stated role criteria.")
 
-            if missing:
-                top_missing = ", ".join(missing[:5])
-                gaps.append(f"Missing {len(missing)} requirement(s): {top_missing}.")
+            if unmet_count > 0:
+                gaps.append(f"Unaddressed or partially evidenced criteria in {unmet_count} requirement area(s).")
             else:
-                strengths.append("Fully covers all required technical competencies specified in the job posting.")
+                strengths.append("Fully addresses all explicitly stated qualification and responsibility criteria.")
 
-            if match_percentage >= 80.0:
-                badge = "Strong Hire"
-                desc = "Strong candidate alignment. Recommended for initial technical screening."
+            if match_percentage >= 75.0:
+                badge = "Strong Fit"
+                desc = "Strong overall alignment with role requirements. Recommended for primary interview."
                 style = "background-color: #d1fae5; color: #065f46; border: 1px solid #10b981;"
-            elif match_percentage >= 65.0:
-                badge = "Consider"
-                desc = "Solid foundational profile with minor skill gaps. Recommended for secondary evaluation."
-                style = "background-color: #fef3c7; color: #92400e; border: 1px solid #f59e0b;"
-            elif match_percentage >= 45.0:
+            elif match_percentage >= 50.0:
                 badge = "Moderate Fit"
-                desc = "Partial alignment. Candidate may require substantial onboarding or domain transition."
+                desc = "Satisfies core competencies with minor gaps. Recommended for secondary review."
+                style = "background-color: #fef3c7; color: #92400e; border: 1px solid #f59e0b;"
+            elif match_percentage >= 35.0:
+                badge = "Partial Fit"
+                desc = "Partial alignment with substantial unaddressed criteria. Review against priority requirements."
                 style = "background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444;"
             else:
-                badge = "Not Recommended"
-                desc = "Low contextual and technical alignment with current role requirements."
+                badge = "Low Alignment"
+                desc = "Limited contextual and requirement alignment with current role specifications."
                 style = "background-color: #f3f4f6; color: #374151; border: 1px solid #9ca3af;"
 
             return AIVerdict(
@@ -114,12 +114,12 @@ class CandidateEvaluator:
         filename: str,
         raw_text: str,
         match_percentage: float,
-        semantic_sim: float,
-        keyword_density: float,
-        skill_gap: SkillGapAnalysis
+        macro_semantic_score: float,
+        terminology_score: float,
+        req_analysis: DynamicRequirementAnalysis
     ) -> CandidateEvaluationArtifact:
         """
-        Assembles all individual evaluation metrics into a unified CandidateEvaluationArtifact.
+        Assembles all evaluation metrics into a unified CandidateEvaluationArtifact.
         """
         try:
             if match_percentage >= 75.0:
@@ -133,7 +133,7 @@ class CandidateEvaluator:
                 color = "#ef4444"
 
             summary = self.summarize_profile(raw_text)
-            verdict = self.evaluate_verdict(match_percentage, skill_gap, filename)
+            verdict = self.evaluate_verdict(match_percentage, req_analysis, filename)
 
             return CandidateEvaluationArtifact(
                 filename=filename,
@@ -141,10 +141,10 @@ class CandidateEvaluator:
                 match_percentage=match_percentage,
                 fit_tier=tier,
                 fit_color=color,
-                semantic_score=round(semantic_sim * 100, 1),
-                skill_score=round(skill_gap.coverage_ratio * 100, 1),
-                keyword_score=round(keyword_density * 100, 1),
-                skill_gap=skill_gap,
+                requirement_coverage_score=req_analysis.coverage_score,
+                macro_semantic_score=macro_semantic_score,
+                domain_terminology_score=terminology_score,
+                requirement_analysis=req_analysis,
                 verdict=verdict,
                 executive_summary=summary
             )

@@ -1,0 +1,5 @@
+[ 2026-08-18 06:14:55,601 ] 161 numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+[ 2026-08-18 06:14:55,844 ] 24 ResumeMatcher - INFO - Initializing ResumeMatchingPipeline
+[ 2026-08-18 06:14:55,844 ] 30 ResumeMatcher - INFO - Initializing DocumentParser component
+[ 2026-08-18 06:14:55,844 ] 16 ResumeMatcher - INFO - Initializing SkillExtractor component with ontology mappings
+[ 2026-08-18 06:14:55,851 ] 36 ResumeMatcher - INFO - SentenceTransformer not available. Using TF-IDF vectorizer.

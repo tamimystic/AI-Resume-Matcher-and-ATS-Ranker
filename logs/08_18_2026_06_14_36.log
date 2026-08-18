@@ -1,0 +1,8 @@
+[ 2026-08-18 06:14:38,102 ] 161 numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+[ 2026-08-18 06:14:38,451 ] 24 ResumeMatcher - INFO - Initializing ResumeMatchingPipeline
+[ 2026-08-18 06:14:38,451 ] 30 ResumeMatcher - INFO - Initializing DocumentParser component
+[ 2026-08-18 06:14:38,451 ] 16 ResumeMatcher - INFO - Initializing SkillExtractor component with ontology mappings
+[ 2026-08-18 06:14:38,459 ] 36 ResumeMatcher - INFO - SentenceTransformer not available. Using TF-IDF vectorizer.
+[ 2026-08-18 06:14:38,484 ] 58 ResumeMatcher - ERROR - Error parsing PDF bytes: Failed to open stream
+[ 2026-08-18 06:14:38,484 ] 132 ResumeMatcher - ERROR - Failed to process document Md_Tamim_Hossain_Resume.pdf: Error occurred in python script name [I:\Natural Language Processing Projects\AI-Resume-Matcher-and-ATS-Ranker\src\components\document_parser.py] line number [50] error message [Failed to open stream]
+[ 2026-08-18 06:14:38,484 ] 89 ResumeMatcher - ERROR - Error in evaluate_single_resume for Md_Tamim_Hossain_Resume.pdf: Error occurred in python script name [I:\Natural Language Processing Projects\AI-Resume-Matcher-and-ATS-Ranker\src\components\document_parser.py] line number [114] error message [Error occurred in python script name [I:\Natural Language Processing Projects\AI-Resume-Matcher-and-ATS-Ranker\src\components\document_parser.py] line number [50] error message [Failed to open stream]]

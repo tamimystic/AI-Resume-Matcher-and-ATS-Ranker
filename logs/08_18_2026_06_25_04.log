@@ -1,0 +1,7 @@
+[ 2026-08-18 06:25:05,749 ] 161 numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+[ 2026-08-18 06:25:05,971 ] 24 ResumeMatcher - INFO - Initializing Domain-Agnostic ResumeMatchingPipeline
+[ 2026-08-18 06:25:05,971 ] 30 ResumeMatcher - INFO - Initializing DocumentParser component
+[ 2026-08-18 06:25:05,971 ] 16 ResumeMatcher - INFO - Initializing Domain-Agnostic RequirementExtractor component
+[ 2026-08-18 06:25:05,971 ] 40 ResumeMatcher - INFO - SentenceTransformer package not found. Using fallback vectorizer.
+[ 2026-08-18 06:25:05,980 ] 172 ResumeMatcher - ERROR - Error in evaluate_requirements: shapes (25,163) and (178,37) not aligned: 163 (dim 1) != 178 (dim 0)
+[ 2026-08-18 06:25:05,980 ] 100 ResumeMatcher - ERROR - Error evaluating single resume Md_Tamim_Hossain_Resume.pdf: Error occurred in python script name [I:\Natural Language Processing Projects\AI-Resume-Matcher-and-ATS-Ranker\src\components\semantic_matcher.py] line number [102] error message [shapes (25,163) and (178,37) not aligned: 163 (dim 1) != 178 (dim 0)]

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 @dataclass
@@ -8,15 +8,32 @@ class ParsedDocument:
     raw_text: str
     word_count: int
     char_count: int
+    chunks: List[str] = field(default_factory=list)
 
 
 @dataclass
-class SkillGapAnalysis:
-    matched_skills: List[str]
-    missing_skills: List[str]
-    coverage_ratio: float
-    total_required_skills: int
-    matched_skills_count: int
+class RequirementEvidence:
+    requirement_text: str
+    matched_evidence_snippet: str
+    raw_similarity: float
+    calibrated_score: float
+    is_satisfied: bool
+    status_label: str
+
+
+@dataclass
+class DynamicRequirementAnalysis:
+    total_requirements: int
+    satisfied_count: int
+    partial_count: int
+    unmet_count: int
+    requirement_evidence_list: List[RequirementEvidence]
+    satisfied_requirements: List[str]
+    unmet_requirements: List[str]
+    coverage_score: float
+    extracted_keyphrases: List[str]
+    matched_keyphrases: List[str]
+    missing_keyphrases: List[str]
 
 
 @dataclass
@@ -35,10 +52,10 @@ class CandidateEvaluationArtifact:
     match_percentage: float
     fit_tier: str
     fit_color: str
-    semantic_score: float
-    skill_score: float
-    keyword_score: float
-    skill_gap: SkillGapAnalysis
+    requirement_coverage_score: float
+    macro_semantic_score: float
+    domain_terminology_score: float
+    requirement_analysis: DynamicRequirementAnalysis
     verdict: AIVerdict
     executive_summary: str
     metadata: Dict[str, Any] = field(default_factory=dict)

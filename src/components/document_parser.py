@@ -1,4 +1,5 @@
 import io
+import os
 import re
 import sys
 from typing import Union
@@ -94,6 +95,17 @@ class DocumentParser:
         try:
             filename_lower = filename.lower()
             
+            # Check if file_source is already extracted plain text string
+            if isinstance(file_source, str) and not os.path.exists(file_source):
+                cleaned_text = self._clean_text(file_source)
+                words = cleaned_text.split()
+                return ParsedDocument(
+                    filename=filename,
+                    raw_text=cleaned_text,
+                    word_count=len(words),
+                    char_count=len(cleaned_text)
+                )
+
             # Read bytes from various input sources
             if hasattr(file_source, "read"):
                 raw_bytes = file_source.read()

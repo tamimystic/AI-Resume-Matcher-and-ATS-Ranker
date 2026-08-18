@@ -8,7 +8,7 @@ from src.logger.logging import logger
 
 class ExportManager:
     """
-    Utility component for transforming candidate evaluation artifacts into structured tabular formats.
+    Utility component for exporting candidate evaluation artifacts to structured tabular data.
     """
 
     @staticmethod
@@ -16,19 +16,20 @@ class ExportManager:
         try:
             records = []
             for rank, item in enumerate(artifacts, start=1):
+                analysis = item.requirement_analysis
                 records.append({
                     "Rank": rank,
                     "Candidate File": item.filename,
                     "Overall Match Score (%)": item.match_percentage,
                     "Fit Category": item.fit_tier,
                     "Recommendation Verdict": item.verdict.verdict_badge,
-                    "Semantic Similarity (%)": item.semantic_score,
-                    "Skill Coverage (%)": item.skill_score,
-                    "Keyword Overlap (%)": item.keyword_score,
-                    "Matched Skills Count": item.skill_gap.matched_skills_count,
-                    "Missing Skills Count": len(item.skill_gap.missing_skills),
-                    "Matched Skills": ", ".join(item.skill_gap.matched_skills),
-                    "Missing Skills": ", ".join(item.skill_gap.missing_skills),
+                    "Requirement Coverage (%)": item.requirement_coverage_score,
+                    "Macro Context Similarity (%)": item.macro_semantic_score,
+                    "Domain Terminology (%)": item.domain_terminology_score,
+                    "Satisfied Requirements Count": analysis.satisfied_count,
+                    "Unmet Requirements Count": analysis.unmet_count,
+                    "Satisfied Criteria": " | ".join(analysis.satisfied_requirements),
+                    "Unmet Criteria": " | ".join(analysis.unmet_requirements),
                     "Executive Summary": item.executive_summary.replace("\n", " ")
                 })
             return pd.DataFrame(records)

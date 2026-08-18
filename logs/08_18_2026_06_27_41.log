@@ -1,0 +1,5 @@
+[ 2026-08-18 06:27:42,281 ] 161 numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+[ 2026-08-18 06:27:42,486 ] 24 ResumeMatcher - INFO - Initializing Domain-Agnostic ResumeMatchingPipeline
+[ 2026-08-18 06:27:42,486 ] 30 ResumeMatcher - INFO - Initializing DocumentParser component
+[ 2026-08-18 06:27:42,486 ] 16 ResumeMatcher - INFO - Initializing Domain-Agnostic RequirementExtractor component
+[ 2026-08-18 06:27:42,486 ] 42 ResumeMatcher - INFO - Operating in Lexical & TF-IDF hybrid matching mode.

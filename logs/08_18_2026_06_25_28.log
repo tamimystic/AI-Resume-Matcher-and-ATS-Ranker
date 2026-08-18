@@ -1,0 +1,5 @@
+[ 2026-08-18 06:25:29,821 ] 161 numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+[ 2026-08-18 06:25:30,017 ] 24 ResumeMatcher - INFO - Initializing Domain-Agnostic ResumeMatchingPipeline
+[ 2026-08-18 06:25:30,017 ] 30 ResumeMatcher - INFO - Initializing DocumentParser component
+[ 2026-08-18 06:25:30,017 ] 16 ResumeMatcher - INFO - Initializing Domain-Agnostic RequirementExtractor component
+[ 2026-08-18 06:25:30,017 ] 40 ResumeMatcher - INFO - SentenceTransformer package not found. Using fallback vectorizer.
